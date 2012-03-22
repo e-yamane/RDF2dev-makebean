@@ -1,0 +1,8 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<beans>
+  <bean className="jp.rough_diamond.SampleBean" description="サンプルBean">
+  </bean>
+
+  <bean className="jp.rough_diamond.SampleBean2" description="サンプルBean２">
+  </bean>
+</beans>

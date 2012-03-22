@@ -1,0 +1,20 @@
+//$Id: BeansTemplate.vm,v 1.1 2005/10/27 15:43:53 yamane Exp $
+#if ($bean.packageName != '')
+package $bean.packageName;
+#end
+
+#if ($bean.parentPackage != '')
+#set ($parentPackage = "${bean.parentPackage}.")
+#else
+#set ($parentPackage="")
+#end
+/**
+#if ($bean.packageName == '')
+ * @see $bean.className
+#else
+ * @see ${parentPackage}Base${bean.className}
+#end
+**/
+public class ${bean.className}${bean.classSuffix} extends ${parentPackage}Base${bean.className}${bean.classSuffix} {
+    private static final long serialVersionUID = 1L;
+}

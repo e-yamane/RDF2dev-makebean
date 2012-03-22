@@ -1,0 +1,113 @@
+//$Id: BeansBaseTemplate.vm,v 1.1 2005/10/27 15:43:53 yamane Exp $
+#if ($bean.parentPackage != '')
+package $bean.parentPackage;
+#end
+#if ($bean.extendClassName != '')
+#set ($ext = "extends $bean.extendClassName")
+#end
+import java.io.Serializable;
+
+#foreach ($import in $bean.imports )
+import $import;
+#end
+
+/**
+#if ($bean.description != '')
+ * $bean.description
+#end
+**/
+@SuppressWarnings("all")
+abstract public class Base${bean.className}${bean.classSuffix} $!ext implements Serializable {
+#foreach ($property in $bean.properties)
+#if ($property.description != '')
+    /**
+     * $property.description
+    **/
+#end
+#set($transient = "")
+#if($property.transient)
+#set($transient = "transient")
+#end
+#if($property.type.startsWith("ThreadLocal<"))
+    private $transient $property.type   $property.name = new ${property.type}();
+#else
+    private $transient $property.type   $property.name;
+#end
+
+#end
+#foreach ($property in $bean.properties)
+#if($property.type.startsWith("ThreadLocal<"))
+#set ($prefix = "ThreadLocal<")
+#set ($endIndex = $property.type.length() - 1)
+#set ($generics = $property.type.substring($prefix.length(), $endIndex))
+#set ($isThreadLocal = true)
+#else
+#set ($isThreadLocal = false)
+#end
+    /**
+#if ($property.description != '')
+     * $property.descriptionを取得する
+     * @return $property.description
+#else
+     * @return $property.name
+#end
+    **/
+#if ($isThreadLocal)
+    public $generics $util.getGetterName($property)() {
+        return this.${property.name}.get();
+    }
+#else
+    public $property.type $util.getGetterName($property)() {
+        return this.$property.name;
+    }
+#end
+
+#end
+
+#foreach ($property in $bean.properties)
+#if($property.type.startsWith("ThreadLocal<"))
+#set ($prefix = "ThreadLocal<")
+#set ($endIndex = $property.type.length() - 1)
+#set ($generics = $property.type.substring($prefix.length(), $endIndex))
+#set ($isThreadLocal = true)
+#else
+#set ($isThreadLocal = false)
+#end
+    /**
+#if ($property.description != '')
+     * $property.descriptionを設定する
+     * @param $property.name $property.description
+#else
+     * @param $property.name
+#end
+    **/
+#if ($isThreadLocal)
+    public void $util.getSetterName($property)($generics $property.name) {
+        this.${property.name}.set($property.name);
+    }
+#else
+    public void $util.getSetterName($property)($property.type $property.name) {
+        this.$property.name = $property.name;
+    }
+#end
+
+#end
+    public String toString() {
+      StringBuffer buf = new StringBuffer();
+#foreach ($property in $bean.properties)
+#if ($property.description != '')
+      buf.append("[$property.description:");
+#else
+      buf.append("[$property.name:");
+#end
+#if($property.type.startsWith("ThreadLocal<"))
+      buf.append(${property.name}.get() + "]");
+#else
+      buf.append($property.name + "]");
+#end
+#end
+      return buf.toString();
+    }
+
+    private static final long serialVersionUID = 1L;
+}
