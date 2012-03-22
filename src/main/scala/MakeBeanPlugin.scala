@@ -13,16 +13,25 @@ object MakeBeanPlugin extends Plugin {
 	val makeBean   = TaskKey[Unit]("make-bean", "JavaBeansを生成します")
 	override val settings = inConfig(RdfDevCore.rdf)(Seq(
 		beanDefXml <<= baseDirectory(_ / "etc" / "beanDef" / "beanDef.xml")
-		,makeBean  <<= (beanDefXml, target, (javaSource in Compile)) map { 
-			(srcXml, targetDir, destDir) => doMakeBean(srcXml, targetDir, destDir) 
+		,makeBean  <<= (beanDefXml, target, (javaSource in Compile), javacOptions) map { 
+			(srcXml, targetDir, destDir, compileOption) => doMakeBean(srcXml, targetDir, destDir, getEncoding(compileOption)) 
 		}
 	)) ++ Seq(
 		compile in Compile <<= (compile in Compile) dependsOn (makeBean in RdfDevCore.rdf)
 	)
 	
-	def doMakeBean(srcXml : File, targetDir:File, destDir:File) = {
+	def getEncoding(compileOptions:Seq[String]) : String = {
+		val index = compileOptions.indexWhere(s => s== "-encoding")
+		if(index == -1) {
+			"UTF-8"
+		} else {
+			compileOptions.apply(index + 1)
+		}
+	}
+	
+	def doMakeBean(srcXml : File, targetDir:File, destDir:File, encoding:String) = {
 		if(isDo(srcXml, targetDir)) {
-			new jp.rough_diamond.tools.beangen.JavaBeansGenerator(srcXml, destDir, "UTF-8").doIt
+			new jp.rough_diamond.tools.beangen.JavaBeansGenerator(srcXml, destDir, encoding).doIt
 			touch(getCacheFile(targetDir))
 		}
 	}

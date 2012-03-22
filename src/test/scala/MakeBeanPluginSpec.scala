@@ -28,7 +28,7 @@ class MakeBeanPluginSpec extends Spec {
 		it("makeBean実行時に実行記録ファイルが作成されている事") {
 			cache.delete()
 			var beanDefXml = copyBeanDef
-			MakeBeanPlugin.doMakeBean(beanDefXml, testDir, destDir)
+			MakeBeanPlugin.doMakeBean(beanDefXml, testDir, destDir, "UTF-8")
 			assert(cache.exists)
 		}
 	}
@@ -55,13 +55,27 @@ class MakeBeanPluginSpec extends Spec {
 			cache.setLastModified(addHours(new Date(), -2).getTime)
 			var beanDefXml = copyBeanDef
 			beanDefXml.setLastModified(addHours(new Date(), -1).getTime)
-			MakeBeanPlugin.doMakeBean(beanDefXml, testDir, destDir)
+			MakeBeanPlugin.doMakeBean(beanDefXml, testDir, destDir, "UTF-8")
 			assert(cache.exists)
 			//最終更新日時を２時間前にセットしているので時間経緯上２時間未満になっていればよい
 			assert((System.currentTimeMillis - cache.lastModified) < 2 * 60 * 60 * 1000)
 		}
 	}
 	
+	describe("javacOptionsにencoding指定がある場合"){
+		it("文字コードはencodingに従う") {
+			var seq = Seq("-encoding", "Windows-31J")
+			assert("Windows-31J" == MakeBeanPlugin.getEncoding(seq))
+		}
+	}
+	
+	describe("javacOptionsにencoding指定がない場合"){
+		it("文字コードはUTF-8となる") {
+			var seq = Seq("zzz", "yyy")
+			assert("UTF-8" == MakeBeanPlugin.getEncoding(seq))
+		}
+	}
+
 	def copyBeanDef :File = {
 		var in = new File("src/test/beanDef.xml")
 		var out = new File(testDir, "beanDef.xml")
